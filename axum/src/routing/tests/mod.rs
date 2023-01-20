@@ -4,7 +4,10 @@ use crate::{
     extract::{self, DefaultBodyLimit, FromRef, Path, State},
     handler::{Handler, HandlerWithoutStateExt},
     response::IntoResponse,
-    routing::{delete, get, get_service, on, on_service, patch, patch_service, post, MethodFilter},
+    routing::{
+        delete, get, get_service, on, on_service, patch, patch_service, path_for_nested_route,
+        post, MethodFilter,
+    },
     test_helpers::*,
     BoxError, Json, Router,
 };
@@ -801,4 +804,19 @@ async fn layer_response_into_response() {
     let res = client.get("/").send().await;
     assert_eq!(res.headers()["x-foo"], "bar");
     assert_eq!(res.status(), StatusCode::IM_A_TEAPOT);
+}
+
+#[test]
+fn test_path_for_nested_route() {
+    assert_eq!(path_for_nested_route("/", "/"), "/");
+
+    assert_eq!(path_for_nested_route("/a", "/"), "/a");
+    assert_eq!(path_for_nested_route("/", "/b"), "/b");
+    assert_eq!(path_for_nested_route("/a/", "/"), "/a/");
+    assert_eq!(path_for_nested_route("/", "/b/"), "/b/");
+
+    assert_eq!(path_for_nested_route("/a", "/b"), "/a/b");
+    assert_eq!(path_for_nested_route("/a/", "/b"), "/a/b");
+    assert_eq!(path_for_nested_route("/a", "/b/"), "/a/b/");
+    assert_eq!(path_for_nested_route("/a/", "/b/"), "/a/b/");
 }
